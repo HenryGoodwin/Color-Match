@@ -294,8 +294,8 @@ class ColorMatchVC: UIViewController, ADBannerViewDelegate {
             
         } else {
             
-            colorView.backgroundColor = UIColor.Purple()
-            viewColor = "Purple"
+            colorView.backgroundColor = UIColor.Red()
+            viewColor = "Red"
             
         }
         
