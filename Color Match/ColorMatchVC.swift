@@ -210,23 +210,30 @@ class ColorMatchVC: UIViewController, ADBannerViewDelegate {
             timer.invalidate()
         }
         
-        if score <= 10 {
+        if score <= 15 {
             
             timer = NSTimer.scheduledTimerWithTimeInterval(3.0, target: self, selector: #selector(ColorMatchVC.changeGameState), userInfo: nil, repeats: true)
             
             print("3.0")
             
-        } else if score <= 15 {
+        } else if score <= 30 {
             
             timer = NSTimer.scheduledTimerWithTimeInterval(2.0, target: self, selector: #selector(ColorMatchVC.changeGameState), userInfo: nil, repeats: true)
             
             print("2.0")
             
-        } else  {
+        } else if score <= 50  {
             
             timer = NSTimer.scheduledTimerWithTimeInterval(1.5, target: self, selector: #selector(ColorMatchVC.changeGameState), userInfo: nil, repeats: true)
             
             print("1.5")
+            
+        } else {
+            
+            timer = NSTimer.scheduledTimerWithTimeInterval(1, target: self, selector: #selector(ColorMatchVC.changeGameState), userInfo: nil, repeats: true)
+            
+            print("1")
+            
             
         }
         
