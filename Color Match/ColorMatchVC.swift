@@ -10,10 +10,12 @@ import UIKit
 import Spring
 import iAd
 
-class ColorMatchVC: UIViewController, ADBannerViewDelegate {
+class ColorMatchVC: UIViewController, ADBannerViewDelegate, ADInterstitialAdDelegate {
+    var interAd = ADInterstitialAd()
+    var interAdView: UIView = UIView()
+    var closeButton = UIButton(type: UIButtonType.System) as UIButton
     
     @IBOutlet var stack: UIStackView!
-    
     @IBOutlet weak var colorView: SpringView!
     
     @IBOutlet var btn1: Button!
@@ -45,11 +47,15 @@ class ColorMatchVC: UIViewController, ADBannerViewDelegate {
     var timer: NSTimer!
     
     var highscore = 0
+    var rep = 0
+    
     @IBOutlet weak var highscoreLbl: UILabel!
     @IBOutlet weak var scoreLbl: UILabel!
     
     override func viewDidLoad() {
         super.viewDidLoad()
+        
+        rep = 0
         
         self.canDisplayBannerAds = true
         self.adBannerView?.delegate = self
@@ -72,6 +78,17 @@ class ColorMatchVC: UIViewController, ADBannerViewDelegate {
         stack.hidden = true
         scoreLbl.hidden = true
         
+        closeButton.frame = CGRectMake(20, 80, 25, 25)
+        closeButton.layer.cornerRadius = closeButton.frame.size.width/2
+        closeButton.layer.masksToBounds = true
+        closeButton.setTitle("x", forState: .Normal)
+        closeButton.setTitleColor(UIColor.blackColor(), forState: .Normal)
+        closeButton.backgroundColor = UIColor.whiteColor()
+        closeButton.layer.borderColor = UIColor.blackColor().CGColor
+        closeButton.layer.borderWidth = 1
+        closeButton.addTarget(self, action: #selector(ColorMatchVC.close(_:)), forControlEvents: UIControlEvents.TouchDown)
+
+        
         NSNotificationCenter.defaultCenter().addObserver(self, selector: #selector(ColorMatchVC.correctTapped), name: "CorrectPressed", object: nil)
         NSNotificationCenter.defaultCenter().addObserver(self, selector: #selector(ColorMatchVC.wrongTapped), name: "WrongPressed", object: nil)
         
@@ -90,6 +107,47 @@ class ColorMatchVC: UIViewController, ADBannerViewDelegate {
     override func didReceiveMemoryWarning() {
         super.didReceiveMemoryWarning()
         // Dispose of any resources that can be recreated.
+    }
+    
+    func close(sender: UIButton) {
+        closeButton.removeFromSuperview()
+        interAdView.removeFromSuperview()
+        adBannerView?.hidden = false
+        rep = 0
+    }
+    
+    func loadAd() {
+         NSLog("interstitialAdbannerViewWillLoadAd")
+        interAd = ADInterstitialAd()
+        interAd.delegate = self
+    }
+    
+    func interstitialAdDidLoad(interstitialAd: ADInterstitialAd!) {
+        NSLog("interstitialAdViewDidLoadAd")
+        
+        interAdView = UIView()
+        interAdView.frame = self.view.bounds
+        view.addSubview(interAdView)
+        
+        interAd.presentInView(interAdView)
+        UIViewController.prepareInterstitialAds()
+        
+        interAdView.addSubview(closeButton)
+        
+        
+    }
+    
+    func interstitialAdDidUnload(interstitialAd: ADInterstitialAd!) {
+        
+    }
+    
+    func interstitialAd(interstitialAd: ADInterstitialAd!, didFailWithError error: NSError!) {
+        NSLog("interstitialAd")
+        print(error.localizedDescription)
+        
+        closeButton.removeFromSuperview()
+        interAdView.removeFromSuperview()
+        
     }
     
     @IBAction func startL1(sender:UIButton) {
@@ -335,6 +393,9 @@ class ColorMatchVC: UIViewController, ADBannerViewDelegate {
     func gameOver() {
         
         timer.invalidate()
+        if rep != 3 {
+            rep = rep + 1
+        }
         
         stack.hidden = true
         l1.hidden = false
@@ -345,6 +406,13 @@ class ColorMatchVC: UIViewController, ADBannerViewDelegate {
         scoreLbl.hidden = false
         highscoreLbl.hidden = false
         
+        print(rep)
+        if rep == 3 {
+            adBannerView?.hidden = true
+            loadAd()
+            rep = 0
+        }
+
         scoreLbl.text = "Score: \(score)"
         
         if (score > highscore) {
@@ -355,8 +423,6 @@ class ColorMatchVC: UIViewController, ADBannerViewDelegate {
             let highscoreDefults = NSUserDefaults.standardUserDefaults()
             highscoreDefults.setValue(highscore, forKey: "Highscore")
             highscoreDefults.synchronize()
-            
-            
         }
     }
 }
